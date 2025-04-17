@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,18 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				neural: {
+					primary: '#6D28D9',
+					secondary: '#4F46E5', 
+					accent: '#8B5CF6',
+					highlight: '#A78BFA',
+					background: '#1E1B4B',
+					foreground: '#F5F3FF',
+					success: '#10B981',
+					error: '#EF4444',
+					warning: '#F59E0B',
+					info: '#3B82F6'
 				}
 			},
 			borderRadius: {
@@ -84,11 +97,31 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-soft': {
+					'0%, 100%': { opacity: '0.6' },
+					'50%': { opacity: '1' }
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
+				},
+				'glow': {
+					'0%, 100%': { filter: 'brightness(100%)' },
+					'50%': { filter: 'brightness(120%)' }
+				},
+				'network-flow': {
+					'0%': { strokeDashoffset: '1000' },
+					'100%': { strokeDashoffset: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-soft': 'pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'float': 'float 3s ease-in-out infinite',
+				'glow': 'glow 2s ease-in-out infinite',
+				'network-flow': 'network-flow 2s linear infinite'
 			}
 		}
 	},
