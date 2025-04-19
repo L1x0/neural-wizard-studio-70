@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar } from "@/components/ui/avatar";
-import { SendHorizonal, BrainCircuit, User, Files, FilePlus, FileMinus } from "lucide-react";
+import { SendHorizonal, BrainCircuit, User, Files, FilePlus, Trash2 } from "lucide-react";
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -20,18 +20,35 @@ interface Message {
   timestamp: Date;
 }
 
+const LOCAL_STORAGE_KEY = "chat-messages";
+
 const ChatInterface: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Здравствуйте! Я ваш ИИ-помощник. Как я могу помочь вам сегодня?',
-      sender: 'assistant',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Load saved messages from localStorage if present
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const parsed: Message[] = JSON.parse(saved);
+        // revive dates
+        return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }));
+      }
+    } catch {
+      return [];
+    }
+    return [
+      {
+        id: '1',
+        content: 'Здравствуйте! Я ваш ИИ-помощник. Как я могу помочь вам сегодня?',
+        sender: 'assistant',
+        timestamp: new Date(),
+      },
+    ];
+  });
+
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
+  // Files state
   const [files, setFiles] = useState<string[]>([
     'example1.txt',
     'model_config.json',
@@ -48,7 +65,12 @@ const ChatInterface: React.FC = () => {
   const deleteFilesRef = useRef<HTMLUListElement | null>(null);
   const addFileContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Close dropdowns/dialogs on click outside or action
+  // Save messages to localStorage every time they change
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
+
+  // Close dropdowns/dialogs on click outside or after action
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -183,9 +205,26 @@ const ChatInterface: React.FC = () => {
               <BrainCircuit className="h-5 w-5 text-neural-accent" />
               <span>ИИ-ассистент</span>
             </div>
-            <div className="flex flex-wrap gap-2 flex-1 min-w-[180px]">
-              {/* View files button */}
-              <div className="relative">
+
+            {/* Buttons container */}
+            <div className="
+              flex flex-wrap gap-3
+              max-w-full
+              sm:flex-row sm:justify-start
+              sm:items-center
+              sm:min-w-[180px]
+              sm:flex-1
+              md:flex-row
+              md:justify-start
+              md:items-center
+              md:min-w-[180px]
+              md:flex-1
+              sm:flex-nowrap
+              sm:flex-shrink-0
+            "
+              style={{ minWidth: 0 }}
+            >
+              <div className="flex grow basis-full sm:basis-auto">
                 <Button
                   id="btn-view-files"
                   variant="outline"
@@ -193,7 +232,7 @@ const ChatInterface: React.FC = () => {
                   onClick={toggleViewFiles}
                   aria-expanded={showViewFiles}
                   aria-haspopup="listbox"
-                  className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent"
+                  className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto"
                   type="button"
                   title="Посмотреть все файлы"
                 >
@@ -205,7 +244,7 @@ const ChatInterface: React.FC = () => {
                     ref={viewFilesRef}
                     role="listbox"
                     tabIndex={-1}
-                    className="absolute right-0 mt-1 max-h-48 w-48 overflow-auto rounded-md border border-neural-accent bg-neural-primary/95 text-white shadow-lg z-50 backdrop-blur-sm"
+                    className="absolute top-full mt-1 max-h-48 w-48 overflow-auto rounded-md border border-neural-accent bg-neural-primary/95 text-white shadow-lg z-50 backdrop-blur-sm"
                   >
                     {files.length === 0 && (
                       <li className="p-2 text-neutral-400 select-none break-words">
@@ -215,7 +254,7 @@ const ChatInterface: React.FC = () => {
                     {files.map(file => (
                       <li
                         key={file}
-                        className="px-3 py-2 cursor-default hover:bg-neural-accent/30 rounded select-text break-words"
+                        className="px-3 py-2 cursor-default hover:bg-neural-accent/30 rounded select-text break-words whitespace-normal"
                         title={file}
                         onClick={() => setShowViewFiles(false)} // close on click
                       >
@@ -226,14 +265,13 @@ const ChatInterface: React.FC = () => {
                 )}
               </div>
 
-              {/* Add file button */}
-              <div className="relative">
+              <div className="flex grow basis-full sm:basis-auto">
                 <Button
                   id="btn-add-file"
                   variant="outline"
                   size="sm"
                   onClick={openAddFile}
-                  className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent"
+                  className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto"
                   type="button"
                   title="Добавить файл"
                 >
@@ -242,8 +280,7 @@ const ChatInterface: React.FC = () => {
                 </Button>
               </div>
 
-              {/* Delete file button */}
-              <div className="relative">
+              <div className="flex grow basis-full sm:basis-auto">
                 <Button
                   id="btn-delete-files"
                   variant="outline"
@@ -253,15 +290,13 @@ const ChatInterface: React.FC = () => {
                   aria-haspopup="listbox"
                   disabled={files.length === 0}
                   className={cn(
-                    "flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent",
-                    files.length === 0
-                      ? 'opacity-50 cursor-not-allowed'
-                      : ''
+                    "flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto",
+                    files.length === 0 ? "opacity-50 cursor-not-allowed" : ""
                   )}
                   type="button"
                   title="Удалить файл"
                 >
-                  <FileMinus className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
                   Удалить
                 </Button>
                 {showDeleteFiles && (
@@ -269,7 +304,7 @@ const ChatInterface: React.FC = () => {
                     ref={deleteFilesRef}
                     role="listbox"
                     tabIndex={-1}
-                    className="absolute right-0 mt-1 max-h-48 w-48 overflow-auto rounded-md border border-destructive bg-destructive/90 text-destructive-foreground shadow-lg backdrop-blur-sm z-50"
+                    className="absolute top-full mt-1 max-h-48 w-48 overflow-auto rounded-md border border-destructive bg-destructive/90 text-destructive-foreground shadow-lg backdrop-blur-sm z-50"
                   >
                     {files.length === 0 && (
                       <li className="p-2 text-destructive-select-none">
@@ -279,7 +314,7 @@ const ChatInterface: React.FC = () => {
                     {files.map(file => (
                       <li
                         key={file}
-                        className="px-3 py-2 cursor-pointer hover:bg-destructive-foreground hover:text-destructive rounded select-text break-words"
+                        className="px-3 py-2 cursor-pointer hover:bg-destructive-foreground hover:text-destructive rounded select-text break-words whitespace-normal"
                         onClick={() => handleDeleteFile(file)}
                         role="option"
                         tabIndex={0}
@@ -373,8 +408,9 @@ const ChatInterface: React.FC = () => {
               multiple
               onChange={handleFileUpload}
               ref={fileInputRef}
-              className="file-input file-input-bordered file-input-sm w-full text-sm"
+              className="file-input file-input-bordered file-input-sm w-full text-sm cursor-pointer"
               style={{ colorScheme: 'dark' }}
+              title="Выберите файлы для загрузки"
             />
           </div>
         )}
@@ -403,3 +439,4 @@ const ChatInterface: React.FC = () => {
 };
 
 export default ChatInterface;
+
