@@ -24,12 +24,10 @@ const LOCAL_STORAGE_KEY = "chat-messages";
 
 const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(() => {
-    // Load saved messages from localStorage if present
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
         const parsed: Message[] = JSON.parse(saved);
-        // revive dates
         return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }));
       }
     } catch {
@@ -200,132 +198,108 @@ const ChatInterface: React.FC = () => {
     <Card className="flex flex-col h-full">
       <CardHeader>
         <CardTitle>
-          <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2 shrink-0">
               <BrainCircuit className="h-5 w-5 text-neural-accent" />
               <span>ИИ-ассистент</span>
             </div>
-
-            {/* Buttons container */}
-            <div className="
-              flex flex-wrap gap-3
-              max-w-full
-              sm:flex-row sm:justify-start
-              sm:items-center
-              sm:min-w-[180px]
-              sm:flex-1
-              md:flex-row
-              md:justify-start
-              md:items-center
-              md:min-w-[180px]
-              md:flex-1
-              sm:flex-nowrap
-              sm:flex-shrink-0
-            "
-              style={{ minWidth: 0 }}
-            >
-              <div className="flex grow basis-full sm:basis-auto">
-                <Button
-                  id="btn-view-files"
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleViewFiles}
-                  aria-expanded={showViewFiles}
-                  aria-haspopup="listbox"
-                  className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto"
-                  type="button"
-                  title="Посмотреть все файлы"
+            <div className="flex flex-wrap gap-3 max-w-full sm:max-w-[70%] md:max-w-[60%] justify-start">
+              <Button
+                id="btn-view-files"
+                variant="outline"
+                size="sm"
+                onClick={toggleViewFiles}
+                aria-expanded={showViewFiles}
+                aria-haspopup="listbox"
+                className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto"
+                type="button"
+                title="Посмотреть все файлы"
+              >
+                <Files className="w-4 h-4" />
+                Файлы
+              </Button>
+              {showViewFiles && (
+                <ul
+                  ref={viewFilesRef}
+                  role="listbox"
+                  tabIndex={-1}
+                  className="absolute top-full mt-1 max-h-48 w-48 overflow-auto rounded-md border border-neural-accent bg-neural-primary/95 text-white shadow-lg z-50 backdrop-blur-sm"
                 >
-                  <Files className="w-4 h-4" />
-                  Файлы
-                </Button>
-                {showViewFiles && (
-                  <ul
-                    ref={viewFilesRef}
-                    role="listbox"
-                    tabIndex={-1}
-                    className="absolute top-full mt-1 max-h-48 w-48 overflow-auto rounded-md border border-neural-accent bg-neural-primary/95 text-white shadow-lg z-50 backdrop-blur-sm"
-                  >
-                    {files.length === 0 && (
-                      <li className="p-2 text-neutral-400 select-none break-words">
-                        Файлы отсутствуют
-                      </li>
-                    )}
-                    {files.map(file => (
-                      <li
-                        key={file}
-                        className="px-3 py-2 cursor-default hover:bg-neural-accent/30 rounded select-text break-words whitespace-normal"
-                        title={file}
-                        onClick={() => setShowViewFiles(false)} // close on click
-                      >
-                        {file}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="flex grow basis-full sm:basis-auto">
-                <Button
-                  id="btn-add-file"
-                  variant="outline"
-                  size="sm"
-                  onClick={openAddFile}
-                  className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto"
-                  type="button"
-                  title="Добавить файл"
-                >
-                  <FilePlus className="w-4 h-4" />
-                  Добавить
-                </Button>
-              </div>
-
-              <div className="flex grow basis-full sm:basis-auto">
-                <Button
-                  id="btn-delete-files"
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleDeleteFiles}
-                  aria-expanded={showDeleteFiles}
-                  aria-haspopup="listbox"
-                  disabled={files.length === 0}
-                  className={cn(
-                    "flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto",
-                    files.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+                  {files.length === 0 && (
+                    <li className="p-2 text-neutral-400 select-none break-words">
+                      Файлы отсутствуют
+                    </li>
                   )}
-                  type="button"
-                  title="Удалить файл"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Удалить
-                </Button>
-                {showDeleteFiles && (
-                  <ul
-                    ref={deleteFilesRef}
-                    role="listbox"
-                    tabIndex={-1}
-                    className="absolute top-full mt-1 max-h-48 w-48 overflow-auto rounded-md border border-destructive bg-destructive/90 text-destructive-foreground shadow-lg backdrop-blur-sm z-50"
-                  >
-                    {files.length === 0 && (
-                      <li className="p-2 text-destructive-select-none">
-                        Нет файлов для удаления
-                      </li>
-                    )}
-                    {files.map(file => (
-                      <li
-                        key={file}
-                        className="px-3 py-2 cursor-pointer hover:bg-destructive-foreground hover:text-destructive rounded select-text break-words whitespace-normal"
-                        onClick={() => handleDeleteFile(file)}
-                        role="option"
-                        tabIndex={0}
-                        title={file}
-                      >
-                        {file}
-                      </li>
-                    ))}
-                  </ul>
+                  {files.map(file => (
+                    <li
+                      key={file}
+                      className="px-3 py-2 cursor-default hover:bg-neural-accent/30 rounded select-text break-words whitespace-normal"
+                      title={file}
+                      onClick={() => setShowViewFiles(false)} // close on click
+                    >
+                      {file}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <Button
+                id="btn-add-file"
+                variant="outline"
+                size="sm"
+                onClick={openAddFile}
+                className="flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto"
+                type="button"
+                title="Добавить файл"
+              >
+                <FilePlus className="w-4 h-4" />
+                Добавить
+              </Button>
+
+              <Button
+                id="btn-delete-files"
+                variant="outline"
+                size="sm"
+                onClick={toggleDeleteFiles}
+                aria-expanded={showDeleteFiles}
+                aria-haspopup="listbox"
+                disabled={files.length === 0}
+                className={cn(
+                  "flex items-center gap-1 border-neural-accent text-neural-accent hover:bg-neural-accent/10 focus:ring-1 focus:ring-neural-accent w-full sm:w-auto",
+                  files.length === 0 ? "opacity-50 cursor-not-allowed" : ""
                 )}
-              </div>
+                type="button"
+                title="Удалить файл"
+              >
+                <Trash2 className="w-4 h-4" />
+                Удалить
+              </Button>
+              {showDeleteFiles && (
+                <ul
+                  ref={deleteFilesRef}
+                  role="listbox"
+                  tabIndex={-1}
+                  className="absolute top-full mt-1 max-h-48 w-48 overflow-auto rounded-md border border-destructive bg-destructive/90 text-destructive-foreground shadow-lg backdrop-blur-sm z-50"
+                >
+                  {files.length === 0 && (
+                    <li className="p-2 select-none text-destructive-foreground">
+                      Нет файлов для удаления
+                    </li>
+                  )}
+                  {files.map(file => (
+                    <li
+                      key={file}
+                      className="px-3 py-2 cursor-pointer hover:bg-destructive-foreground hover:text-destructive rounded select-text break-words whitespace-normal"
+                      onClick={() => handleDeleteFile(file)}
+                      role="option"
+                      tabIndex={0}
+                      title={file}
+                    >
+                      {file}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </CardTitle>
@@ -439,4 +413,3 @@ const ChatInterface: React.FC = () => {
 };
 
 export default ChatInterface;
-
