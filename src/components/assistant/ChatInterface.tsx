@@ -1,11 +1,16 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useRef } from 'react';
+import {
+  Card,
+  CardContent, 
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar } from "@/components/ui/avatar";
-import { SendHorizonal, BrainCircuit, User } from "lucide-react";
+import { SendHorizonal, BrainCircuit, User, FileText, PlusCircle, Trash2 } from "lucide-react";
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -16,6 +21,7 @@ interface Message {
 }
 
 const ChatInterface: React.FC = () => {
+  // Messages and input states as before
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -27,6 +33,23 @@ const ChatInterface: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
+  // New state: files list (strings as filenames)
+  const [files, setFiles] = useState<string[]>([
+    'example1.txt',
+    'model_config.json',
+    'training_data.csv'
+  ]);
+
+  // State for dropdown visibility
+  const [showViewFiles, setShowViewFiles] = useState(false);
+  const [showDeleteFiles, setShowDeleteFiles] = useState(false);
+  // State for showing add file dialog
+  const [showAddFile, setShowAddFile] = useState(false);
+
+  // Ref for file input to reset
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Handle sending message
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
     
@@ -79,12 +102,145 @@ const ChatInterface: React.FC = () => {
     }
   };
 
+  // Handlers for file management
+  const toggleViewFiles = () => {
+    setShowViewFiles(!showViewFiles);
+    setShowDeleteFiles(false);
+    setShowAddFile(false);
+  };
+
+  const toggleDeleteFiles = () => {
+    setShowDeleteFiles(!showDeleteFiles);
+    setShowViewFiles(false);
+    setShowAddFile(false);
+  };
+
+  const handleAddFileClick = () => {
+    setShowAddFile(true);
+    setShowViewFiles(false);
+    setShowDeleteFiles(false);
+  };
+
+  const handleAddFileCancel = () => {
+    setShowAddFile(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadedFiles = e.target.files;
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      const newFileNames = Array.from(uploadedFiles).map(f => f.name);
+      // Avoid duplicates
+      setFiles(prevFiles => {
+        const combined = [...prevFiles];
+        for (const name of newFileNames) {
+          if (!combined.includes(name)) {
+            combined.push(name);
+          }
+        }
+        return combined;
+      });
+      setShowAddFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteFile = (fileName: string) => {
+    setFiles(prevFiles => prevFiles.filter(f => f !== fileName));
+  };
+
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col h-full relative">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BrainCircuit className="h-5 w-5 text-neural-accent" />
-          ИИ-ассистент
+        <CardTitle className="flex items-center gap-2 justify-between">
+          <div className="flex items-center gap-2">
+            <BrainCircuit className="h-5 w-5 text-neural-accent" />
+            ИИ-ассистент
+          </div>
+          <div className="flex gap-2">
+            {/* Button: View all files */}
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleViewFiles} 
+                aria-expanded={showViewFiles} 
+                aria-haspopup="listbox"
+                className="flex items-center gap-1"
+                title="Посмотреть все файлы"
+              >
+                <FileText className="w-4 h-4" />
+                Файлы
+              </Button>
+              {showViewFiles && (
+                <ul 
+                  role="listbox" 
+                  className="absolute right-0 mt-1 max-h-64 w-48 overflow-auto rounded-md border border-border bg-card p-1 text-sm shadow-lg z-50"
+                  tabIndex={-1}
+                >
+                  {files.length === 0 && (
+                    <li className="px-2 py-1 text-muted-foreground">Файлы отсутствуют</li>
+                  )}
+                  {files.map(file => (
+                    <li key={file} className="px-2 py-1 hover:bg-muted cursor-default">
+                      {file}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {/* Button: Add file */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddFileClick}
+              title="Добавить файл"
+              className="flex items-center gap-1"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Добавить
+            </Button>
+            {/* Button: Delete file */}
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleDeleteFiles} 
+                aria-expanded={showDeleteFiles} 
+                aria-haspopup="listbox"
+                className="flex items-center gap-1"
+                title="Удалить файл"
+                disabled={files.length === 0}
+              >
+                <Trash2 className="w-4 h-4" />
+                Удалить
+              </Button>
+              {showDeleteFiles && (
+                <ul 
+                  role="listbox" 
+                  className="absolute right-0 mt-1 max-h-64 w-48 overflow-auto rounded-md border border-border bg-card p-1 text-sm shadow-lg z-50"
+                  tabIndex={-1}
+                >
+                  {files.length === 0 && (
+                    <li className="px-2 py-1 text-muted-foreground">Нет файлов для удаления</li>
+                  )}
+                  {files.map(file => (
+                    <li 
+                      key={file} 
+                      className="px-2 py-1 hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
+                      onClick={() => {
+                        handleDeleteFile(file);
+                      }}
+                      role="option"
+                      tabIndex={0}
+                    >
+                      {file}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -110,7 +266,7 @@ const ChatInterface: React.FC = () => {
                     "bg-muted"
                 )}
               >
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -138,7 +294,22 @@ const ChatInterface: React.FC = () => {
           </div>
         )}
       </CardContent>
-      <CardFooter className="border-t p-4">
+      <CardFooter className="border-t p-4 flex flex-col gap-2">
+        {showAddFile && (
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-semibold">Добавить файл</h4>
+              <Button size="sm" variant="ghost" onClick={handleAddFileCancel}>Отмена</Button>
+            </div>
+            <input 
+              type="file" 
+              multiple 
+              onChange={handleFileUpload} 
+              ref={fileInputRef} 
+              className="file-input-bordered file-input file-input-sm w-full"
+            />
+          </div>
+        )}
         <div className="flex gap-2 w-full">
           <Textarea 
             value={inputValue}
@@ -147,10 +318,11 @@ const ChatInterface: React.FC = () => {
             placeholder="Напишите сообщение..."
             className="flex-1 min-h-[40px] resize-none"
             rows={1}
+            disabled={showAddFile} 
           />
           <Button 
             onClick={handleSendMessage} 
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || showAddFile}
             className="shrink-0"
           >
             <SendHorizonal className="h-5 w-5" />
