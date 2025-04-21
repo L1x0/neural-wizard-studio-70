@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, Star, BookOpen, Share2 } from "lucide-react";
+import { Download, BookOpen, Share2, Star } from "lucide-react";
 import { cn } from '@/lib/utils';
 import { NeuralModel } from '@/types/neural';
 
@@ -55,16 +55,16 @@ const ModelCard: React.FC<ModelCardProps> = ({ model, className }) => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-3 gap-2">
-        <Button size="sm" variant="outline" className="w-full">
+      <CardFooter className="flex flex-col gap-2">
+        <Button variant="outline" className="w-full">
           <BookOpen className="h-4 w-4 mr-1" />
           Детали
         </Button>
-        <Button size="sm" variant="outline" className="w-full">
+        <Button variant="outline" className="w-full">
           <Share2 className="h-4 w-4 mr-1" />
           Поделиться
         </Button>
-        <Button size="sm" className="w-full">
+        <Button className="w-full">
           <Download className="h-4 w-4 mr-1" />
           Скачать
         </Button>
