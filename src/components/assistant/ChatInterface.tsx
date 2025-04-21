@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Card,
@@ -20,40 +19,25 @@ interface Message {
   timestamp: Date;
 }
 
-const LOCAL_STORAGE_KEY = "chat-messages";
-
 const ChatInterface: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        const parsed: Message[] = JSON.parse(saved);
-        return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }));
-      }
-    } catch {
-      return [];
-    }
-    return [
-      {
-        id: '1',
-        content: 'Здравствуйте! Я ваш ИИ-помощник. Как я могу помочь вам сегодня?',
-        sender: 'assistant',
-        timestamp: new Date(),
-      },
-    ];
-  });
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      content: 'Здравствуйте! Я ваш ИИ-помощник. Как я могу помочь вам сегодня?',
+      sender: 'assistant',
+      timestamp: new Date(),
+    },
+  ]);
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  // Files state
   const [files, setFiles] = useState<string[]>([
     'example1.txt',
     'model_config.json',
     'training_data.csv',
   ]);
 
-  // Dropdown controls
   const [showViewFiles, setShowViewFiles] = useState(false);
   const [showDeleteFiles, setShowDeleteFiles] = useState(false);
   const [showAddFile, setShowAddFile] = useState(false);
@@ -63,12 +47,6 @@ const ChatInterface: React.FC = () => {
   const deleteFilesRef = useRef<HTMLUListElement | null>(null);
   const addFileContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Save messages to localStorage every time they change
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
-
-  // Close dropdowns/dialogs on click outside or after action
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -116,7 +94,6 @@ const ChatInterface: React.FC = () => {
     setIsTyping(true);
 
     try {
-      // Simulated async response with 1.5s delay, replace with API call as needed
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       const assistantMessage: Message = {
@@ -235,7 +212,7 @@ const ChatInterface: React.FC = () => {
                       key={file}
                       className="px-3 py-2 cursor-default hover:bg-neural-accent/30 rounded select-text break-words whitespace-normal"
                       title={file}
-                      onClick={() => setShowViewFiles(false)} // close on click
+                      onClick={() => setShowViewFiles(false)}
                     >
                       {file}
                     </li>
